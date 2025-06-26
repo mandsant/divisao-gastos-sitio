@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divisão de Gastos - Viagem Sítio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .neutral {
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        .person-row {
+            font-weight: 600;
+        }
+
+        .final-balance {
+            font-size: 1.1em;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+
+        .final-balance.positive {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .final-balance.negative {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .final-balance.neutral {
+            background: #e2e3e5;
+            border-left: 4px solid #6c757d;
+        }
+
+        .transfer-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .update-notice {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Divisão de Gastos</h1>
+            <p>Viagem ao Sítio - Acerto de Contas (Atualizada)</p>
+        </div>
+
+        <div class="content">
+            <div class="update-notice">
+                <strong>📋 Atualizações aplicadas:</strong><br>
+                • Whiskey ajustado para R$ 61,57 total (Bei mantido R$ 41,60, restante dividido)<br>
+                • Bei transferiu R$ 160,82 para Amanda + R$ 59,65 para Yago<br>
+                • Giovana transferiu R$ 160,82 para Amanda + R$ 21,34 para Yago
+            </div>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Total Gasto</h3>
+                    <div class="value">R$ 3.770,00</div>
+                </div>
+                <div class="card">
+                    <h3>Total de Pessoas</h3>
+                    <div class="value">11</div>
+                </div>
+                <div class="card">
+                    <h3>Média por Pessoa</h3>
+                    <div class="value">R$ 342,73</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('resumo')">📊 Resumo Final</div>
+                <div class="tab" onclick="showTab('transferencias')">💸 Quem Deve para Quem</div>
+                <div class="tab" onclick="showTab('detalhes')">📋 Detalhes por Item</div>
+                <div class="tab" onclick="showTab('pagamentos')">💳 Quem Pagou</div>
+            </div>
+
+            <div id="resumo" class="tab-content active">
+                <h2 style="margin-bottom: 20px; color: #333;">💸 Acerto Final - O que cada um deve/recebe:</h2>
+                <div id="final-balances"></div>
+            </div>
+
+            <div id="transferencias" class="tab-content">
+                <h2 style="margin-bottom: 20px; color: #333;">💸 Transferências Necessárias:</h2>
+                <div id="transfers-container"></div>
+            </div>
+
+            <div id="detalhes" class="tab-content">
+                <h2 style="margin-bottom: 20px; color: #333;">📋 Divisão Detalhada por Item:</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pessoa</th>
+                                <th>Cerveja</th>
+                                <th>Whiskey</th>
+                                <th>Gin</th>
+                                <th>Compras Gerais</th>
+                                <th>Narguile</th>
+                                <th>Total a Pagar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="details-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="pagamentos" class="tab-content">
+                <h2 style="margin-bottom: 20px; color: #333;">💳 Resumo dos Pagamentos:</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pessoa</th>
+                                <th>Total Pago</th>
+                                <th>Itens Pagos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="person-row">Amanda</td>
+                                <td class="positive">R$ 2.229,11</td>
+                                <td>Cerveja SP, Red Bull, Baly Gin, Compras Gerais SP, Cerveja Mercadinho + Recebido: Bei (R$ 160,82) + Giovana (R$ 160,82)</td>
+                            </tr>
+                            <tr>
+                                <td class="person-row">Yago</td>
+                                <td class="positive">R$ 707,73</td>
+                                <td>Gin Seagers, Whiskey Ballantines, Energético, Carvão Churrasco, Narguile, Milho + Recebido: Bei (R$ 59,65) + Giovana (R$ 21,34)</td>
+                            </tr>
+                            <tr>
+                                <td class="person-row">Popo</td>
+                                <td class="positive">R$ 450,49</td>
+                                <td>Supermercado São Roque, Carvão Narguile, Cerveja, Whiskey</td>
+                            </tr>
+                            <tr>
+                                <td class="person-row">Bei</td>
+                                <td class="neutral">R$ 0,00</td>
+                                <td>Transferiu: R$ 160,82 para Amanda + R$ 59,65 para Yago</td>
+                            </tr>
+                            <tr>
+                                <td class="person-row">Giovana</td>
+                                <td class="neutral">R$ 0,00</td>
+                                <td>Transferiu: R$ 160,82 para Amanda + R$ 21,34 para Yago</td>
+                            </tr>
+                            <tr>
+                                <td class="person-row">Outros</td>
+                                <td class="neutral">R$ 0,00</td>
+                                <td>Não fizeram pagamentos diretos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados das pessoas
+        const people = ['Amanda', 'Bei', 'Jheny', 'Mike', 'Anderson', 'Giovana', 'Larissa', 'Rugin', 'Yago', 'Popo', 'Helena'];
+        
+        // Valores que cada pessoa pagou (originais - Bei e Giovana fizeram transferências separadas)
+        const payments = {
+            'Amanda': 1907.47,
+            'Bei': 0,
+            'Jheny': 0,
+            'Mike': 0,
+            'Anderson': 0,
+            'Giovana': 0,
+            'Larissa': 0,
+            'Rugin': 0,
+            'Yago': 626.74,
+            'Popo': 450.49,
+            'Helena': 0
+        };
+
+        // Transferências já realizadas
+        const transfers_made = {
+            'Bei': { 'Amanda': 160.82, 'Yago': 59.65 },
+            'Giovana': { 'Amanda': 160.82, 'Yago': 21.34 }
+        };
+
+        // Detalhes por item (whiskey ajustado para total R$ 61,57)
+        const itemDetails = {
+            'Amanda': { cerveja: 110.61, whiskey: 0, gin: 20.19, compras: 124.92, narguile: 25.50, total: 281.22 },
+            'Bei': { cerveja: 55.84, whiskey: 41.60, gin: 0, compras: 115.43, narguile: 22.63, total: 235.50 },
+            'Jheny': { cerveja: 110.61, whiskey: 6.66, gin: 20.19, compras: 124.92, narguile: 25.50, total: 287.88 },
+            'Mike': { cerveja: 110.61, whiskey: 6.66, gin: 0, compras: 124.92, narguile: 25.50, total: 267.69 },
+            'Anderson': { cerveja: 110.61, whiskey: 6.66, gin: 0, compras: 124.92, narguile: 25.50, total: 267.69 },
+            'Giovana': { cerveja: 55.84, whiskey: 0, gin: 20.19, compras: 115.43, narguile: 0, total: 191.46 },
+            'Larissa': { cerveja: 110.61, whiskey: 6.66, gin: 20.19, compras: 124.92, narguile: 25.50, total: 287.88 },
+            'Rugin': { cerveja: 110.61, whiskey: 0, gin: 20.19, compras: 124.92, narguile: 25.50, total: 281.22 },
+            'Yago': { cerveja: 110.61, whiskey: 0, gin: 0, compras: 124.92, narguile: 25.50, total: 261.03 },
+            'Popo': { cerveja: 0, whiskey: 6.66, gin: 0, compras: 124.92, narguile: 25.50, total: 157.08 },
+            'Helena': { cerveja: 0, whiskey: 6.66, gin: 0, compras: 124.92, narguile: 25.50, total: 157.08 }
+        };
+
+        function calculateFinalBalance() {
+            const balances = {};
+            
+            for (let person of people) {
+                const owes = itemDetails[person].total;
+                const paid = payments[person];
+                let balance = paid - owes;
+                
+                // Ajustar com transferências já feitas
+                if (transfers_made[person]) {
+                    // Pessoa fez transferências (débito)
+                    const transfers_out = Object.values(transfers_made[person]).reduce((sum, val) => sum + val, 0);
+                    balance -= transfers_out;
+                }
+                
+                // Recebeu transferências (crédito)
+                for (let payer in transfers_made) {
+                    if (transfers_made[payer][person]) {
+                        balance += transfers_made[payer][person];
+                    }
+                }
+                
+                balances[person] = balance;
+            }
+            
+            return balances;
+        }
+
+        function displayFinalBalances() {
+            const balances = calculateFinalBalance();
+            const container = document.getElementById('final-balances');
+            
+            let html = '';
+            
+            for (let person of people) {
+                const balance = balances[person];
+                let className, text, icon;
+                
+                if (balance > 0) {
+                    className = 'positive';
+                    text = `deve receber R$ ${balance.toFixed(2)}`;
+                    icon = '💰';
+                } else if (balance < 0) {
+                    className = 'negative';
+                    text = `deve pagar R$ ${Math.abs(balance).toFixed(2)}`;
+                    icon = '💸';
+                } else {
+                    className = 'neutral';
+                    text = 'está quite';
+                    icon = '✅';
+                }
+                
+                html += `
+                    <div class="final-balance ${className}">
+                        <strong>${icon} ${person}</strong> ${text}
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function calculateTransfers() {
+            const balances = calculateFinalBalance();
+            const transfers = [];
+            
+            // Separar quem deve receber (credores) e quem deve pagar (devedores)
+            const creditors = [];
+            const debtors = [];
+            
+            for (let person of people) {
+                const balance = balances[person];
+                if (balance > 0.01) { // Evitar problemas de arredondamento
+                    creditors.push({ name: person, amount: balance });
+                } else if (balance < -0.01) {
+                    debtors.push({ name: person, amount: Math.abs(balance) });
+                }
+            }
+            
+            // Ordenar por valor (maior primeiro)
+            creditors.sort((a, b) => b.amount - a.amount);
+            debtors.sort((a, b) => b.amount - a.amount);
+            
+            // Calcular transferências otimizadas
+            let i = 0, j = 0;
+            while (i < creditors.length && j < debtors.length) {
+                const creditor = creditors[i];
+                const debtor = debtors[j];
+                
+                const transferAmount = Math.min(creditor.amount, debtor.amount);
+                
+                if (transferAmount > 0.01) { // Só adicionar se for significativo
+                    transfers.push({
+                        from: debtor.name,
+                        to: creditor.name,
+                        amount: transferAmount
+                    });
+                }
+                
+                creditor.amount -= transferAmount;
+                debtor.amount -= transferAmount;
+                
+                if (creditor.amount < 0.01) i++;
+                if (debtor.amount < 0.01) j++;
+            }
+            
+            return transfers;
+        }
+
+        function displayTransfers() {
+            const transfers = calculateTransfers();
+            const container = document.getElementById('transfers-container');
+            
+            if (transfers.length === 0) {
+                container.innerHTML = '<div class="final-balance neutral">🎉 Todas as contas estão acertadas!</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            transfers.forEach(transfer => {
+                html += `
+                    <div class="transfer-item">
+                        <div>
+                            <strong>💸 ${transfer.from}</strong> deve transferir para <strong>💰 ${transfer.to}</strong>
+                        </div>
+                        <div style="font-size: 1.2em; font-weight: bold; color: #dc3545;">
+                            R$ ${transfer.amount.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function displayDetails() {
+            const tbody = document.getElementById('details-tbody');
+            let html = '';
+            
+            for (let person of people) {
+                const details = itemDetails[person];
+                html += `
+                    <tr>
+                        <td class="person-row">${person}</td>
+                        <td>R$ ${details.cerveja.toFixed(2)}</td>
+                        <td>R$ ${details.whiskey.toFixed(2)}</td>
+                        <td>R$ ${details.gin.toFixed(2)}</td>
+                        <td>R$ ${details.compras.toFixed(2)}</td>
+                        <td>R$ ${details.narguile.toFixed(2)}</td>
+                        <td><strong>R$ ${details.total.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            }
+            
+            tbody.innerHTML = html;
+        }
+
+        function showTab(tabName) {
+            // Remover classe active de todas as abas
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(tab => tab.classList.remove('active'));
+            
+            // Mostrar aba selecionada
+            document.getElementById(tabName).classList.add('active');
+            
+            // Ativar botão da aba
+            const activeButton = Array.from(document.querySelectorAll('.tab')).find(tab => 
+                tab.textContent.includes(getTabText(tabName))
+            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function getTabText(tabName) {
+            const tabTexts = {
+                'resumo': 'Resumo Final',
+                'transferencias': 'Quem Deve para Quem',
+                'detalhes': 'Detalhes por Item',
+                'pagamentos': 'Quem Pagou'
+            };
+            return tabTexts[tabName] || '';
+        }
+
+        // Inicializar quando a página carregar
+        window.addEventListener('DOMContentLoaded', function() {
+            displayFinalBalances();
+            displayTransfers();
+            displayDetails();
+        });
+    </script>
+</body>
+</html>
